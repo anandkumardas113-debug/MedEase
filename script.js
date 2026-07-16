@@ -1,6 +1,8 @@
 // AUTH STATE
 let isLoggedIn = false;
 let currentUser = null;
+// Profile storage object (initialized to avoid ReferenceError during signup)
+let myProfile = {};
 
 
 // OPEN/CLOSE MODAL
@@ -13,27 +15,75 @@ modal.classList.toggle("hidden");
 // SWITCH LOGIN / SIGNUP
 function switchAuthMode(mode){
 
-document.querySelector("#login-form").classList.toggle("hidden", mode === "signup");
-document.querySelector("#signup-form").classList.toggle("hidden", mode === "login");
-alert("Switched to " + mode + " mode");
+    if (!mode) return;
+    if (mode === 'register') mode = 'signup';
+    const loginForm = document.querySelector("#login-form");
+    const signupForm = document.querySelector("#signup-form");
+    if (loginForm && signupForm) {
+        loginForm.classList.toggle("hidden", mode === "signup");
+        signupForm.classList.toggle("hidden", mode === "login");
+    }
 
 }
 
 
 // LOGIN / REGISTER
 function handleAuthAction(type){
-isLoggedIn = true;
+    // Login or Signup
+    if (type === 'signup') {
+        const form = document.getElementById('signup-form');
+        if (!form) return alert('Signup form not found');
+        const inputs = form.querySelectorAll('input, select, textarea');
+        const user = {};
+        inputs.forEach(inp => {
+            if (!inp.name) return;
+            if (inp.type === 'radio') {
+                if (inp.checked) user[inp.name] = inp.value;
+                return;
+            }
+            user[inp.name] = inp.value;
+        });
 
-currentUser = {
-name: "Anand Rana"
-};
+        // Merge with existing profile defaults
+        myProfile = Object.assign({}, myProfile, user);
+        localStorage.setItem('medease_user', JSON.stringify(myProfile));
+        localStorage.setItem('loggedIn', 'true');
+        isLoggedIn = true;
+        currentUser = { name: myProfile.name || myProfile.name || 'User' };
+        toggleAuthModal();
+        populateProfileUI();
+        updateNavbar();
+        navigateTo('profile');
+        // alert('Registered successfully!');
+        return;
+    }
 
-alert(type === "login" ? "Logged in successfully!" : "Registered successfully!");
+    if (type === 'login') {
+        const form = document.getElementById('login-form');
+        if (!form) return alert('Login form not found');
+        const emailInput = form.querySelector('input[name="email"]');
+        if (!emailInput) return alert('Login email field missing');
+        const email = emailInput.value.trim();
 
-toggleAuthModal();
+        const stored = localStorage.getItem('medease_user');
+        if (stored) {
+            const storedUser = JSON.parse(stored);
+            if (storedUser.email && storedUser.email === email) {
+                localStorage.setItem('loggedIn', 'true');
+                isLoggedIn = true;
+                currentUser = { name: storedUser.name || 'User' };
+                toggleAuthModal();
+                populateProfileUI();
+                updateNavbar();
+                navigateTo('profile');
+                // alert('Logged in successfully!');
+                return;
+            }
+        }
 
-navigateTo("profile");
-
+        alert('Invalid login credentials');
+        return;
+    }
 }
 
 
@@ -217,6 +267,12 @@ function deleteDocument(docId) {
             const activeNav = document.getElementById(`nav-${pageId}`);
             if (activeNav) activeNav.classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600');
 
+            // Clear home search input when navigating away from Home
+            if (pageId !== 'home') {
+                const homeSearch = document.getElementById('home-search-input');
+                if (homeSearch) homeSearch.value = '';
+            }
+
             // Reset search when navigating to doctors page
             if (pageId === 'doctors') {
                 activeCategory = 'All';
@@ -319,7 +375,8 @@ function deleteDocument(docId) {
         // --- INITIALIZATION ---
         window.onload = () => {
             lucide.createIcons();
-            updateNavbar();
+                updateNavbar();
+                populateProfileUI();
             loadUploadedDocuments();
             
             // Home page doctors
@@ -367,7 +424,46 @@ function deleteDocument(docId) {
                     }
                 });
             }
+
+            // Wire auth forms if present
+            const signupForm = document.getElementById('signup-form');
+            if (signupForm) {
+                signupForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    handleAuthAction('signup');
+                });
+            }
+
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    handleAuthAction('login');
+                });
+            }
         };
+
+
+// Populate profile UI from stored user data
+function populateProfileUI(){
+    const stored = localStorage.getItem('medease_user');
+    if(!stored) return;
+    try{
+        const data = JSON.parse(stored);
+        myProfile = Object.assign({}, myProfile, data);
+        Object.keys(myProfile).forEach(key => {
+            const el = document.getElementById(`profile-${key}`);
+            if(el) el.textContent = myProfile[key];
+        });
+        // also update brief/alternate name and ID displays
+        const brief = document.getElementById('profile-name-brief');
+        if (brief) brief.textContent = myProfile.name || '';
+        const idEl = document.getElementById('profile-ID');
+        if (idEl) idEl.textContent = myProfile.ID || myProfile.id || '';
+    }catch(err){
+        console.error('Failed to populate profile UI', err);
+    }
+}
 
         function updateNavbar(){
 
@@ -449,34 +545,45 @@ function openDoctorProfile(id){
     navigateTo('doctor');
 }
 
-let myProfile ={
-    ID:"12",
-    name: "Prashant Rana",
-    email: "prashant.rana@example.com",
-    gender : "Male",
-    bloodGroup: "O+",
-    weight: "70kg",
-    height: "5'9\"",
-    dob: "1990-01-01",
-    phone: "+91 98765 43210",
-    address: "123 Main St, City, Country",
-    nameOfDoctor: "Dr. Anna Rana",
-    doctorEmail: "anna.rana@example.com",
-    doctorPhone: "+91 98765 43210",
-    doctorWorkplace: "City Hospital",
-    
+// let myProfile ={
+//     ID:"12",
+//     name: "Prashant Rana",
+//     email: "prashant.rana@example.com",
+//     gender : "Male",
+//     bloodGroup: "O+",
+//     weight: "70kg",
+//     height: "5'9\"",
+//     dob: "1990-01-01",
+//     phone: "+91 98765 43210",
+//     address: "123 Main St, City, Country",
+//     nameOfDoctor: "Dr. Anna Rana",
+//     doctorEmail: "anna.rana@example.com",
+//     doctorPhone: "+91 98765 43210",
+//     doctorWorkplace: "City Hospital",
+// }
 
+
+
+const uploadForm = document.getElementById('uploadForm');
+if (uploadForm) {
+    uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fileInput = document.getElementById('pdfFile');
+        if (!fileInput || fileInput.files.length === 0) {
+            return alert('Please select a PDF file first.');
+        }
+        const formData = new FormData();
+        formData.append('pdfFile', fileInput.files[0]);
+        try {
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            alert(await response.text());
+        } catch (error) {
+            console.error(error);
+            alert('Upload failed.');
+        }
+    });
 }
-
-document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-   e.preventDefault();
-   const fileInput = document.getElementById('pdfFile');
-   const formData = new FormData();
-   formData.append('pdfFile', fileInput.files[0]);
-   const response = await fetch('/upload', {
-       method: 'POST',
-       body: formData
-   });
-   alert(await response.text());
-});
 

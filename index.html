@@ -24,64 +24,73 @@
 <div class="p-10">
 
 <!-- LOGIN -->
-<div id="login-form">
+<form id="login-form">
 <h2 class="text-3xl font-bold mb-2">Welcome Back</h2>
 <p class="text-gray-500 mb-8">Login to manage your appointments</p>
 
 <div class="space-y-4">
-<input type="email" placeholder="Email Address"
-class="w-full px-5 py-4 bg-gray-50 border rounded-2xl">
+    <input name="email" type="email" placeholder="Email Address"
+           class="w-full px-5 py-4 bg-gray-50 border rounded-2xl">
 
-<input type="password" placeholder="Password"
-class="w-full px-5 py-4 bg-gray-50 border rounded-2xl">
+    <input name="password" type="password" placeholder="Password"
+           class="w-full px-5 py-4 bg-gray-50 border rounded-2xl">
 
-<button onclick="handleAuthAction('login')"
-class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold">
-Login
-</button>
+    <button type="submit"
+            class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold">
+        Login
+    </button>
 </div>
 
 <p class="text-center mt-6 text-gray-500">
 Don't have an account?
-<a onclick="switchAuthMode('signup')" class="text-indigo-600 font-bold cursor-pointer">Register</a>
+<a onclick="switchAuthMode('register')" class="text-indigo-600 font-bold cursor-pointer">Register</a>
 </p>
-</div>
+</form>
 
 
 <!-- SIGNUP -->
-<div id="signup-form" class="hidden">
+<form id="signup-form" class="hidden">
 
-<h2 class="text-3xl font-bold mb-2">Create Account</h2>
-<p class="Second-class">Join MedEase today</p>
+    <h2 class="text-3xl font-bold mb-2">Create Account</h2>
+    <p class="Second-class">Join MedEase today</p>
 
-<div class="space-y-4">
+    <div class="space-y-4">
 
-<input type="text" placeholder="Full Name"
-class="w-full px-5 py-4 bg-gray-50 border rounded-2xl">
+     <input name="name" type="text" placeholder="Full Name"
+         class="w-full px-2 py-2 bg-gray-50 border rounded-2xl">
 
-<input type="number" placeholder="Age"
-class="w-full px-5 py-4 bg-gray-50 border rounded-2xl">
+     <input name="age" type="number" placeholder="Age"
+         class="w-full px-2 py-2 bg-gray-50 border rounded-2xl">
 
-<form>
-  <input type="radio" name="gender" value="male"> Male 
-  <input type="radio" name="gender" value="female"> Female 
-  <input type="radio" name="gender" value="other"> Other
-</form>
+     <div>
+         <label class="mr-3"><input type="radio" name="gender" value="Male"> Male</label>
+         <label class="mr-3"><input type="radio" name="gender" value="Female"> Female</label>
+         <label><input type="radio" name="gender" value="Other"> Other</label>
+     </div>
 
-<input type="email" placeholder="Email Address"
-class="w-full px-5 py-4 bg-gray-50 border rounded-2xl">
+     <input name="bloodGroup" type="text" placeholder="Blood Group"
+         class="w-full px-2 py-2 bg-gray-50 border rounded-2xl">
 
- <input type="password" placeholder="Password"     class="w-full px-5 py-4 bg-gray-50 border rounded-2xl">
+     <input name="email" type="email" placeholder="Email Address"
+         class="w-full px-2 py-2 bg-gray-50 border rounded-2xl">
 
-<button onclick="handleAuthAction('signup')"
-class="Register-page">Register</button>
+     <input name="phone" type="tel" placeholder="Phone Number"
+         class="w-full px-2 py-2 bg-gray-50 border rounded-2xl">
+     <input name="address" type="text" placeholder="Address"
+         class="w-full px-2 py-2 bg-gray-50 border rounded-2xl">
 
-</div>
+
+     <input name="password" type="password" placeholder="Password" class="w-full px-2 py-2 bg-gray-50 border rounded-2xl">
+
+     <button type="submit" class="Register-page w-full py-3 bg-indigo-600 text-white rounded-2xl font-bold">Register</button>
+
+    </div>
 
 <p class="text-center mt-6 text-gray-500">
 Already have an account?
 <a onclick="switchAuthMode('login')" class="text-indigo-600 font-bold cursor-pointer">Login</a>
 </p>
+</form>
 
 </div>
 
@@ -130,8 +139,8 @@ Already have an account?
                 </div>
 
                 <div id="auth-section" class="flex items-center gap-3">
-                    <button onclick="toggleAuthModal()" class="px-4 py-2 text-sm font-semibold text-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition">Login</button>
-                    <button onclick="toggleAuthModal()" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">Register</button>
+                    <button onclick="toggleAuthModal(); switchAuthMode('login')" class="px-4 py-2 text-sm font-semibold text-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition">Login</button>
+                    <button onclick="toggleAuthModal(); switchAuthMode('register')" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">Register</button>
                 </div>
             </div>
         </nav>
@@ -264,8 +273,8 @@ Already have an account?
                         <div class="w-full h-full bg-gray-100 rounded-[1.25rem] flex items-center justify-center text-5xl">👤</div>
                     </div>
                     <div class="mb-4">
-                        <h2 class="text-3xl font-bold text-white">Prashant Rana</h2>
-                        <p class="text-white font-medium">Patient ID:12</p>
+                        <h2 class="text-3xl font-bold text-white"><span id="profile-name">Prashant Rana</span></h2>
+                        <p class="text-white font-medium">Patient ID: <span id="profile-ID">12</span></p>
                     </div>
                 </div>
             </div>
@@ -278,13 +287,13 @@ Already have an account?
                             <i data-lucide="user" class="text-indigo-600 w-6 h-6"></i> Personal Information
                         </h3>
                         <ul class="space-y-4 text-gray-700">
-                            <li><strong>Name:</strong> Prashant Rana</li>
-                            <li><strong>Age:</strong> 30</li>
-                            <li><strong>Gender:</strong> Male</li>
-                            <li><strong>Blood Group:</strong> O+</li>
-                            <li><strong>Email:</strong> prashant.rana@example.com</li>
-                            <li><strong>Phone:</strong> +91 9876543210</li>
-                            <li><strong>Address:</strong> 123 Main St, City, State</li>
+                            <li><strong>Name:</strong> <span id="profile-name-brief">Prashant Rana</span></li>
+                            <li><strong>Age:</strong> <span id="profile-age">30</span></li>
+                            <li><strong>Gender:</strong> <span id="profile-gender">Male</span></li>
+                            <li><strong>Blood Group:</strong> <span id="profile-bloodGroup">O+</span></li>
+                            <li><strong>Email:</strong> <span id="profile-email">prashant.rana@example.com</span></li>
+                            <li><strong>Phone:</strong> <span id="profile-phone">+91 9876543210</span></li>
+                            <li><strong>Address:</strong> <span id="profile-address">123 Main St, City, State</span></li>
 
                         </ul>
                     </div>
