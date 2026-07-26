@@ -5,7 +5,7 @@ Steps for making Database :
 4. Go to Admin of SQL
 5. Create Database by pasting SQL Query ,which is given below
 
-   -- Create Database
+  -- Create Database
 CREATE DATABASE IF NOT EXISTS register;
 USE register;
 
@@ -23,15 +23,15 @@ CREATE TABLE IF NOT EXISTS users (
     address TEXT,
     password VARCHAR(255) NOT NULL,
 
- role VARCHAR(20) DEFAULT 'Patient',
+    role VARCHAR(20) DEFAULT 'Patient',
     specialization VARCHAR(100) DEFAULT NULL,
     registrationNumber VARCHAR(100) DEFAULT NULL,
     experience INT DEFAULT NULL,
     workplace VARCHAR(150) DEFAULT NULL,
 
- profile_photo VARCHAR(255) DEFAULT NULL,
+    profile_photo VARCHAR(255) DEFAULT NULL,
 
- created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ==========================
@@ -40,26 +40,26 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS doctors (
     id INT AUTO_INCREMENT PRIMARY KEY,
 
- full_name VARCHAR(100) NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
     age INT NOT NULL,
     gender VARCHAR(20) NOT NULL,
 
-  specialization VARCHAR(100) NOT NULL,
+    specialization VARCHAR(100) NOT NULL,
     medical_registration_no VARCHAR(100) NOT NULL UNIQUE,
 
- experience INT DEFAULT 0,
+    experience INT DEFAULT 0,
     hospital VARCHAR(150),
 
-  email VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
     phone VARCHAR(20),
     address TEXT,
 
- password VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
 
-availability VARCHAR(10) NOT NULL DEFAULT 'No',
+    availability VARCHAR(10) NOT NULL DEFAULT 'No',
     profile_photo VARCHAR(255) DEFAULT NULL,
 
- created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ==========================
@@ -67,16 +67,21 @@ availability VARCHAR(10) NOT NULL DEFAULT 'No',
 -- ==========================
 CREATE TABLE IF NOT EXISTS appointments (
     id INT AUTO_INCREMENT PRIMARY KEY,
- user_id INT NOT NULL,
 
- doctor_name VARCHAR(100) NOT NULL,
+    user_id INT NOT NULL,
+
+    doctor_name VARCHAR(100) NOT NULL,
     speciality VARCHAR(100),
 
-   appointment_date DATE NOT NULL,
+    appointment_date DATE NOT NULL,
     appointment_time TIME NOT NULL,
+
     reason TEXT,
+
     status VARCHAR(30) NOT NULL DEFAULT 'Pending',
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
     FOREIGN KEY (user_id)
         REFERENCES users(id)
         ON DELETE CASCADE
@@ -88,22 +93,21 @@ CREATE TABLE IF NOT EXISTS appointments (
 CREATE TABLE IF NOT EXISTS doctor_recommendations (
     id INT AUTO_INCREMENT PRIMARY KEY,
 
-doctor_id INT NOT NULL,
-user_id INT NOT NULL,
+    doctor_id INT NOT NULL,
+    user_id INT NOT NULL,
 
-recommendation TEXT NOT NULL,
+    recommendation TEXT NOT NULL,
 
-created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-INDEX(user_id),
-INDEX(doctor_id),
+    INDEX(user_id),
+    INDEX(doctor_id),
 
-FOREIGN KEY (doctor_id)
-REFERENCES doctors(id)
-ON DELETE CASCADE,
+    FOREIGN KEY (doctor_id)
+        REFERENCES doctors(id)
+        ON DELETE CASCADE,
 
-FOREIGN KEY (user_id)
-REFERENCES users(id)
-ON DELETE CASCADE
-
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
 );
