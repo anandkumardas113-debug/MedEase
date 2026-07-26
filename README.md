@@ -111,3 +111,4 @@ CREATE TABLE IF NOT EXISTS doctor_recommendations (
         REFERENCES users(id)
         ON DELETE CASCADE
 );
+
