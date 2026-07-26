@@ -1,0 +1,6 @@
+<?php
+session_start();include 'config.php';header('Content-Type:text/plain; charset=utf-8');if(!isset($_SESSION['doctor_id'])){echo 'Please log in as a doctor.';exit;}$id=(int)$_SESSION['doctor_id'];$q=strtolower(trim($_POST['message']??''));$s=$conn->prepare('SELECT full_name,availability FROM doctors WHERE id=?');$s->bind_param('i',$id);$s->execute();$d=$s->get_result()->fetch_assoc();$name=$d['full_name'];
+if(strpos($q,'availability')!==false){echo 'Your current availability is: '.($d['availability']?:'not set yet').'.';}
+elseif(strpos($q,'pending')!==false||strpos($q,'appointment')!==false){$s=$conn->prepare("SELECT COUNT(*) c FROM appointments WHERE doctor_name=? AND status='Pending'");$s->bind_param('s',$name);$s->execute();echo 'You currently have '.$s->get_result()->fetch_assoc()['c'].' pending appointment(s).';}
+elseif(strpos($q,'patient')!==false){$s=$conn->prepare('SELECT COUNT(DISTINCT user_id) c FROM appointments WHERE doctor_name=?');$s->bind_param('s',$name);$s->execute();echo 'You are connected with '.$s->get_result()->fetch_assoc()['c'].' patient(s) through appointments.';}
+else echo 'I can answer questions using MedEase dashboard data about your appointments, connected patients, and availability.';

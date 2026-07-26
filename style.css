@@ -99,3 +99,40 @@
 }
 
  
+
+/* Compact authentication modal */
+.auth-card {
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+}
+
+.auth-input {
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+.auth-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, .12);
+}
+
+.register-type-tab {
+    color: #64748b;
+    transition: background .2s, color .2s, box-shadow .2s;
+}
+
+.register-type-tab.active {
+    background: #fff;
+    color: #4f46e5;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, .12);
+}
+
+@media (max-width: 640px) {
+    .auth-card {
+        max-height: calc(100vh - 1rem);
+        border-radius: 1.25rem;
+    }
+    
+}
+
+        

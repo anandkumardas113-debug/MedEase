@@ -1,0 +1,2 @@
+<?php
+session_start();include 'config.php';if(!isset($_SESSION['doctor_id'])){header('Location:index.php');exit;}$id=(int)($_GET['id']??0);$status=$_GET['status']??'';$allowed=['Confirmed','Rejected','Completed'];if(!in_array($status,$allowed,true)){header('Location:doctor_dashboard.php');exit;}$doctor=$_SESSION['doctor_name']??'';$s=$conn->prepare('UPDATE appointments SET status=? WHERE id=? AND doctor_name=?');$s->bind_param('sis',$status,$id,$doctor);$s->execute();header('Location:doctor_dashboard.php');

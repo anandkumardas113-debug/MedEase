@@ -4,97 +4,124 @@ let currentUser = null;
 // Profile storage object (initialized to avoid ReferenceError during signup)
 let myProfile = {};
 
-
 // OPEN/CLOSE MODAL
-function toggleAuthModal(){
-const modal = document.querySelector("#auth-modal");
-modal.classList.toggle("hidden");
+function toggleAuthModal() {
+  const modal = document.querySelector("#auth-modal");
+  modal.classList.toggle("hidden");
 }
-
 
 // SWITCH LOGIN / SIGNUP
-function switchAuthMode(mode){
+function switchAuthMode(mode) {
+  if (!mode) return;
+  if (mode === "register") mode = "signup";
 
-    if (!mode) return;
-    if (mode === 'register') mode = 'signup';
-    const loginForm = document.querySelector("#login-form");
-    const signupForm = document.querySelector("#signup-form");
-    if (loginForm && signupForm) {
-        loginForm.classList.toggle("hidden", mode === "signup");
-        signupForm.classList.toggle("hidden", mode === "login");
-    }
+  const loginForm = document.querySelector("#login-form");
+  const signupForm = document.querySelector("#signup-form");
 
+  if (loginForm && signupForm) {
+    loginForm.classList.toggle("hidden", mode === "signup");
+    signupForm.classList.toggle("hidden", mode === "login");
+  }
+
+  if (mode === "signup") switchRegisterType("patient");
+  if (mode === "login") switchLoginType("patient");
 }
 
+function switchLoginType(type) {
+  const patientForm = document.getElementById("patient-login-form");
+  const doctorForm = document.getElementById("doctor-login-form");
+  const patientTab = document.getElementById("patient-login-tab");
+  const doctorTab = document.getElementById("doctor-login-tab");
+
+  if (!patientForm || !doctorForm) return;
+
+  const isPatient = type === "patient";
+  patientForm.classList.toggle("hidden", !isPatient);
+  doctorForm.classList.toggle("hidden", isPatient);
+  patientTab.classList.toggle("active", isPatient);
+  doctorTab.classList.toggle("active", !isPatient);
+}
+
+function switchRegisterType(type) {
+  const patientForm = document.getElementById("patient-signup-form");
+  const doctorForm = document.getElementById("doctor-signup-form");
+  const patientTab = document.getElementById("patient-register-tab");
+  const doctorTab = document.getElementById("doctor-register-tab");
+
+  if (!patientForm || !doctorForm) return;
+
+  const isPatient = type === "patient";
+  patientForm.classList.toggle("hidden", !isPatient);
+  doctorForm.classList.toggle("hidden", isPatient);
+  patientTab.classList.toggle("active", isPatient);
+  doctorTab.classList.toggle("active", !isPatient);
+}
 
 // LOGIN / REGISTER
-function handleAuthAction(type){
-    // Login or Signup
-    if (type === 'signup') {
-        const form = document.getElementById('signup-form');
-        if (!form) return alert('Signup form not found');
-        const inputs = form.querySelectorAll('input, select, textarea');
-        const user = {};
-        inputs.forEach(inp => {
-            if (!inp.name) return;
-            if (inp.type === 'radio') {
-                if (inp.checked) user[inp.name] = inp.value;
-                return;
-            }
-            user[inp.name] = inp.value;
-        });
+function handleAuthAction(type) {
+  // Login or Signup
+  if (type === "signup") {
+    const form = document.getElementById("signup-form");
+    if (!form) return alert("Signup form not found");
+    const inputs = form.querySelectorAll("input, select, textarea");
+    const user = {};
+    inputs.forEach((inp) => {
+      if (!inp.name) return;
+      if (inp.type === "radio") {
+        if (inp.checked) user[inp.name] = inp.value;
+        return;
+      }
+      user[inp.name] = inp.value;
+    });
 
-        // Merge with existing profile defaults
-        myProfile = Object.assign({}, myProfile, user);
-        localStorage.setItem('medease_user', JSON.stringify(myProfile));
-        localStorage.setItem('loggedIn', 'true');
+    // Merge with existing profile defaults
+    myProfile = Object.assign({}, myProfile, user);
+    localStorage.setItem("medease_user", JSON.stringify(myProfile));
+    localStorage.setItem("loggedIn", "true");
+    isLoggedIn = true;
+    currentUser = { name: myProfile.name || myProfile.name || "User" };
+    toggleAuthModal();
+    populateProfileUI();
+    updateNavbar();
+    navigateTo("profile");
+    // alert('Registered successfully!');
+    return;
+  }
+
+  if (type === "login") {
+    const form = document.getElementById("login-form");
+    if (!form) return alert("Login form not found");
+    const emailInput = form.querySelector('input[name="email"]');
+    if (!emailInput) return alert("Login email field missing");
+    const email = emailInput.value.trim();
+
+    const stored = localStorage.getItem("medease_user");
+    if (stored) {
+      const storedUser = JSON.parse(stored);
+      if (storedUser.email && storedUser.email === email) {
+        localStorage.setItem("loggedIn", "true");
         isLoggedIn = true;
-        currentUser = { name: myProfile.name || myProfile.name || 'User' };
+        currentUser = { name: storedUser.name || "User" };
         toggleAuthModal();
         populateProfileUI();
         updateNavbar();
-        navigateTo('profile');
-        // alert('Registered successfully!');
+        navigateTo("profile");
+        // alert('Logged in successfully!');
         return;
+      }
     }
 
-    if (type === 'login') {
-        const form = document.getElementById('login-form');
-        if (!form) return alert('Login form not found');
-        const emailInput = form.querySelector('input[name="email"]');
-        if (!emailInput) return alert('Login email field missing');
-        const email = emailInput.value.trim();
-
-        const stored = localStorage.getItem('medease_user');
-        if (stored) {
-            const storedUser = JSON.parse(stored);
-            if (storedUser.email && storedUser.email === email) {
-                localStorage.setItem('loggedIn', 'true');
-                isLoggedIn = true;
-                currentUser = { name: storedUser.name || 'User' };
-                toggleAuthModal();
-                populateProfileUI();
-                updateNavbar();
-                navigateTo('profile');
-                // alert('Logged in successfully!');
-                return;
-            }
-        }
-
-        alert('Invalid login credentials');
-        return;
-    }
+    alert("Invalid login credentials");
+    return;
+  }
 }
 
-
 // LOGOUT
-function handleLogout(){
+function handleLogout() {
+  isLoggedIn = false;
+  currentUser = null;
 
-isLoggedIn = false;
-currentUser = null;
-
-navigateTo("home");
-
+  navigateTo("home");
 }
 
 // --- DOCUMENT UPLOAD FUNCTIONALITY ---
@@ -102,58 +129,63 @@ let uploadedDocuments = [];
 
 // Load documents from localStorage on page load
 function loadUploadedDocuments() {
-    const saved = localStorage.getItem('medease_documents');
-    uploadedDocuments = saved ? JSON.parse(saved) : [];
-    renderUploadedDocuments();
+  const saved = localStorage.getItem("medease_documents");
+  uploadedDocuments = saved ? JSON.parse(saved) : [];
+  renderUploadedDocuments();
 }
 
 // Handle file upload
 function handleFileUpload(files) {
-    Array.from(files).forEach(file => {
-        if (file.type !== 'application/pdf') {
-            alert('Please upload PDF files only');
-            return;
-        }
+  Array.from(files).forEach((file) => {
+    if (file.type !== "application/pdf") {
+      alert("Please upload PDF files only");
+      return;
+    }
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const document = {
-                id: Date.now() + Math.random(),
-                name: file.name,
-                size: (file.size / 1024).toFixed(2),
-                uploadDate: new Date().toLocaleDateString(),
-                data: event.target.result
-            };
-            
-            uploadedDocuments.push(document);
-            localStorage.setItem('medease_documents', JSON.stringify(uploadedDocuments));
-            renderUploadedDocuments();
-            
-            // Clear input
-            document.getElementById('pdfFile').value = '';
-            document.getElementById('fileName').textContent = '';
-            alert('Document uploaded successfully!');
-        };
-        reader.readAsDataURL(file);
-    });
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const document = {
+        id: Date.now() + Math.random(),
+        name: file.name,
+        size: (file.size / 1024).toFixed(2),
+        uploadDate: new Date().toLocaleDateString(),
+        data: event.target.result,
+      };
+
+      uploadedDocuments.push(document);
+      localStorage.setItem(
+        "medease_documents",
+        JSON.stringify(uploadedDocuments),
+      );
+      renderUploadedDocuments();
+
+      // Clear input
+      document.getElementById("pdfFile").value = "";
+      document.getElementById("fileName").textContent = "";
+      alert("Document uploaded successfully!");
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 // Render uploaded documents
 function renderUploadedDocuments() {
-    const container = document.getElementById('uploadedFilesList');
-    
-    if (uploadedDocuments.length === 0) {
-        container.innerHTML = `
+  const container = document.getElementById("uploadedFilesList");
+
+  if (uploadedDocuments.length === 0) {
+    container.innerHTML = `
             <div class="text-center py-8 text-gray-500">
                 <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-2 text-gray-300"></i>
                 <p>No documents uploaded yet</p>
             </div>
         `;
-        lucide.createIcons();
-        return;
-    }
+    lucide.createIcons();
+    return;
+  }
 
-    container.innerHTML = uploadedDocuments.map(doc => `
+  container.innerHTML = uploadedDocuments
+    .map(
+      (doc) => `
         <div class="flex items-center justify-between bg-gray-50 p-4 rounded-2xl border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all">
             <div class="flex items-center gap-4 flex-1">
                 <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
@@ -173,19 +205,21 @@ function renderUploadedDocuments() {
                 </button>
             </div>
         </div>
-    `).join('');
-    
-    lucide.createIcons();
+    `,
+    )
+    .join("");
+
+  lucide.createIcons();
 }
 
 // View document
 function viewDocument(docId) {
-    const doc = uploadedDocuments.find(d => d.id === docId);
-    if (!doc) return;
+  const doc = uploadedDocuments.find((d) => d.id === docId);
+  if (!doc) return;
 
-    // Open PDF in new tab
-    const newWindow = window.open();
-    newWindow.document.write(`
+  // Open PDF in new tab
+  const newWindow = window.open();
+  newWindow.document.write(`
         <html>
         <head>
             <title>${doc.name}</title>
@@ -203,118 +237,148 @@ function viewDocument(docId) {
 
 // Delete document
 function deleteDocument(docId) {
-    if (confirm('Are you sure you want to delete this document?')) {
-        uploadedDocuments = uploadedDocuments.filter(d => d.id !== docId);
-        localStorage.setItem('medease_documents', JSON.stringify(uploadedDocuments));
-        renderUploadedDocuments();
-        alert('Document deleted successfully!');
-    }
+  if (confirm("Are you sure you want to delete this document?")) {
+    uploadedDocuments = uploadedDocuments.filter((d) => d.id !== docId);
+    localStorage.setItem(
+      "medease_documents",
+      JSON.stringify(uploadedDocuments),
+    );
+    renderUploadedDocuments();
+    alert("Document deleted successfully!");
+  }
 }
 
-        // --- DATA ---
-        const DOCTORS = [
-            { id: 1, name: "Dr. Anna Rana", type: "Neurologist", exp: 6, workplace: "City General", rating: 4.9, img: "👩‍⚕️" , time: "9:00 AM - 5:00 PM", email: "anna.rana@example.com" ,phone: "+91 98765 43210"},
-            { id: 2, name: "Dr. Kishor Kumar", type: "Cardiologist", exp: 12, workplace: "Heart Institute", rating: 4.8, img: "👩‍⚕️" , time: "9:00 AM - 5:00 PM", email: "kishor.kumar@example.com" ,phone: "+91 98765 43211"},
-            { id: 3, name: "Dr. James Wilson", type: "Orthopedic", exp: 8, workplace: "Bone Clinic", rating: 4.7, img: "👨‍⚕️" ,time: "9:00 AM - 5:00 PM", email: "james.wilson@example.com" ,phone: "+91 98765 43212" },
-            { id: 4, name: "Dr. Elena Rod", type: "Pediatrician", exp: 10, workplace: "Children Center", rating: 5.0, img: "👩‍⚕️",time: "9:00 AM - 5:00 PM", email: "elena.rod@example.com" ,phone: "+91 98765 43210" },
-            { id: 5, name: "Dr. Michael Sun", type: "Dermatologist", exp: 5, workplace: "Skin Lab", rating: 4.6, img: "👨‍⚕️",time: "9:00 AM - 5:00 PM", email: "michael.sun@example.com" ,phone: "+91 98765 43210" },
-            { id: 6, name: "Dr. Lisa Gordan", type: "Neurologist", exp: 15, workplace: "Neuro Hub", rating: 4.9, img: "👩‍⚕️" ,time: "9:00 AM - 5:00 PM", email: "lisa.gordan@example.com" ,phone: "+91 98765 43210"},
-            { id: 7, name: "Dr. Shankar Bhuiya", type: "General surgeon", exp: 50, workplace: "Aiims Delhi", rating: 5.0, img: "👩‍⚕️",time: "9:00 AM - 5:00 PM", email: "shankar.bhuiya@example.com" ,phone: "+91 98765 43210" },
-            { id: 8, name: "Dr. Krishna das", type: "Gynecologist", exp: 15, workplace: "Krishna lab", rating: 2.9, img: "👩‍⚕️",time: "9:00 AM - 5:00 PM", email: "krishna.das@example.com" ,phone: "+91 98765 43210" },
-            { id: 9, name: "Dr.Krishna das", type: "Gynecologist", exp: 15, workplace: "Krishna lab", rating: 2.9, img: "👩‍⚕️",time: "9:00 AM - 5:00 PM", email: "Krishna.rana@example.com" ,phone: "+91 98765 43210" },
-            { id: 10, name: "Dr. Kishna das", type: "Gynecologist", exp: 15, workplace: "Krishna lab", rating: 2.9, img: "👩‍⚕️",time: "9:00 AM - 5:00 PM", email: "krishna.das@example.com" ,phone: "+91 98765 43210" },
-            { id: 11, name: "Dr. Krishna das", type: "Gynecologist", exp: 15, workplace: "Krishna lab", rating: 2.9, img: "👩‍⚕️",time: "9:00 AM - 5:00 PM", email: "krishna.das@example.com" ,phone: "+91 98765 43210" },
-            { id: 12, name: "Dr. Krishna das", type: "Gynecologist", exp: 15, workplace: "Krishna lab", rating: 2.9, img: "👩‍⚕️",time: "9:00 AM - 5:00 PM", email: "krishna.das@example.com" ,phone: "+91 98765 43210" },
-            { id: 13, name: "Dr. Krishna das", type: "Gynecologist", exp: 15, workplace: "Krishna lab", rating: 2.9, img: "👩‍⚕️",time: "9:00 AM - 5:00 PM", email: "krishna.das@example.com" ,phone: "+91 98765 43210" },
-            { id: 14, name: "Dr. Krishna das", type: "Gynecologist", exp: 15, workplace: "Krishna lab", rating: 2.9, img: "👩‍⚕️",time: "9:00 AM - 5:00 PM", email: "krishna.das@example.com" ,phone: "+91 98765 43210" },
-            { id: 8, name: "Dr. Krishna das", type: "Gynecologist", exp: 15, workplace: "Krishna lab", rating: 2.9, img: "👩‍⚕️",time: "9:00 AM - 5:00 PM", email: "krishna.das@example.com" ,phone: "+91 98765 43218" },
-            { id: 8, name: "Dr. Krishna das", type: "Gynecologist", exp: 15, workplace: "Krishna lab", rating: 2.9, img: "👩‍⚕️" ,time: "9:00 AM - 5:00 PM", email: "krishna.das@example.com" ,phone: "+91 98765 43218"  },
-            { id: 9, name: "Dr.Krishna das", type: "Gynecologist", exp: 15, workplace: "Krishna lab", rating: 2.9, img: "👩‍⚕️"  ,time: "9:00 AM - 5:00 PM", email: "krishna.das@example.com" ,phone: "+91 98765 43218" },
-            { id: 10, name: "Dr. Kishna das", type: "Gynecologist", exp: 15, workplace: "Krishna lab", rating: 2.9, img: "👩‍⚕️"  ,time: "9:00 AM - 5:00 PM", email: "krishna.das@example.com" ,phone: "+91 98765 43218" },
-            { id: 11, name: "Dr. Krishna das", type: "Gynecologist", exp: 15, workplace: "Krishna lab", rating: 2.9, img: "👩‍⚕️" ,time: "9:00 AM - 5:00 PM", email: "krishna.das@example.com" ,phone: "+91 98765 43218"  },
-            { id: 12, name: "Dr. Krishna das", type: "Gynecologist", exp: 15, workplace: "Krishna lab", rating: 2.9, img: "👩‍⚕️" ,time: "9:00 AM - 5:00 PM", email: "krishna.das@example.com" ,phone: "+91 98765 43218"  },
-            { id: 13, name: "Dr. Krishna das", type: "Gynecologist", exp: 15, workplace: "Krishna lab", rating: 2.9, img: "👩‍⚕️" ,time: "9:00 AM - 5:00 PM", email: "krishna.das@example.com" ,phone: "+91 98765 43218"  },
-           
-         ];
+// --- DATA ---
+const STATIC_DOCTORS = [];
 
-        const CATEGORIES = ["Neurologist", "Cardiologist", "Orthopedic", "Pediatrician", "Dermatologist", "Cardiologist", "Dermatologist", "Endocrinologist", "Gastroenterologist", "Geriatrician", "Hematologist", "Nephrologist", "Neurologist", "Oncologist", "Ophthalmologist", "Orthopedic Surgeon", "Otolaryngologist", "Pediatrician", "Psychiatrist", "Pulmonologist", "Radiologist", "Rheumatologist", "Urologist", "Anesthesiologist", "Pathologist", "Obstetrician/Gynecologist", "General Surgeon", "Allergist/Immunologist", "Infectious Disease Specialist", "Family Medicine Physician", "Internal Medicine Physician", "Emergency Medicine Physician"];
+// Registered doctors come from the PHP/MySQL database. New registrations
+// automatically become searchable cards without editing this JavaScript file.
+const DOCTORS = [...(window.REGISTERED_DOCTORS || []), ...STATIC_DOCTORS];
 
-        let activeCategory = 'All';
-        let activeSearchQuery = '';
+const CATEGORIES = [
+  "Neurologist",
+  "Cardiologist",
+  "Orthopedic",
+  "Pediatrician",
+  "Dermatologist",
+  "Cardiologist",
+  "Dermatologist",
+  "Endocrinologist",
+  "Gastroenterologist",
+  "Geriatrician",
+  "Hematologist",
+  "Nephrologist",
+  "Neurologist",
+  "Oncologist",
+  "Ophthalmologist",
+  "Orthopedic Surgeon",
+  "Otolaryngologist",
+  "Pediatrician",
+  "Psychiatrist",
+  "Pulmonologist",
+  "Radiologist",
+  "Rheumatologist",
+  "Urologist",
+  "Anesthesiologist",
+  "Pathologist",
+  "Obstetrician/Gynecologist",
+  "General Surgeon",
+  "Allergist/Immunologist",
+  "Infectious Disease Specialist",
+  "Family Medicine Physician",
+  "Internal Medicine Physician",
+  "Emergency Medicine Physician",
+];
 
-        function normalizeText(value) {
-            return String(value || '').toLowerCase().trim();
-        }
+let activeCategory = "All";
+let activeSearchQuery = "";
 
-        function getFilteredDoctors() {
-            const query = normalizeText(activeSearchQuery);
-            return DOCTORS.filter(doc => {
-                const matchesCategory = activeCategory === 'All' || doc.type === activeCategory;
-                const matchesQuery = !query || [doc.name, doc.type, doc.workplace].some(value => normalizeText(value).includes(query));
-                return matchesCategory && matchesQuery;
-            });
-        }
+function normalizeText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .trim();
+}
 
-        // --- NAVIGATION LOGIC ---
-        function navigateTo(pageId) {
-            // Hide all pages
-            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('page-active'));
-            // Show target page
-            document.getElementById(`page-${pageId}`).classList.add('page-active');
-            
-            // Update nav styles
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600'));
-            const activeNav = document.getElementById(`nav-${pageId}`);
-            if (activeNav) activeNav.classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600');
+function getFilteredDoctors() {
+  const query = normalizeText(activeSearchQuery);
+  return DOCTORS.filter((doc) => {
+    const matchesCategory =
+      activeCategory === "All" || doc.type === activeCategory;
+    const matchesQuery =
+      !query ||
+      [doc.name, doc.type, doc.workplace].some((value) =>
+        normalizeText(value).includes(query),
+      );
+    return matchesCategory && matchesQuery;
+  });
+}
 
-            // Clear home search input when navigating away from Home
-            if (pageId !== 'home') {
-                const homeSearch = document.getElementById('home-search-input');
-                if (homeSearch) homeSearch.value = '';
-            }
+// --- NAVIGATION LOGIC ---
+function navigateTo(pageId) {
+  // Hide all pages
+  document
+    .querySelectorAll(".page-content")
+    .forEach((p) => p.classList.remove("page-active"));
+  // Show target page
+  document.getElementById(`page-${pageId}`).classList.add("page-active");
 
-            // Reset search when navigating to doctors page
-            if (pageId === 'doctors') {
-                activeCategory = 'All';
-                activeSearchQuery = '';
-                const doctorSearchInput = document.getElementById('doctor-search-input');
-                if (doctorSearchInput) {
-                    doctorSearchInput.value = '';
-                }
-                filterDoctors('All', '');
-            }
+  // Update nav styles
+  document
+    .querySelectorAll(".nav-link")
+    .forEach((l) =>
+      l.classList.remove("text-indigo-600", "border-b-2", "border-indigo-600"),
+    );
+  const activeNav = document.getElementById(`nav-${pageId}`);
+  if (activeNav)
+    activeNav.classList.add(
+      "text-indigo-600",
+      "border-b-2",
+      "border-indigo-600",
+    );
 
-            window.scrollTo(0, 0);
-        }
+  // Clear home search input when navigating away from Home
+  if (pageId !== "home") {
+    const homeSearch = document.getElementById("home-search-input");
+    if (homeSearch) homeSearch.value = "";
+  }
 
+  // Reset search when navigating to doctors page
+  if (pageId === "doctors") {
+    activeCategory = "All";
+    activeSearchQuery = "";
+    const doctorSearchInput = document.getElementById("doctor-search-input");
+    if (doctorSearchInput) {
+      doctorSearchInput.value = "";
+    }
+    filterDoctors("All", "");
+  }
 
-        if (window.lucide) {
-               lucide.createIcons();
-                   }
+  window.scrollTo(0, 0);
+}
 
+if (window.lucide) {
+  lucide.createIcons();
+}
 
+// --- RENDER DOCTORS ---
+function renderDoctorCards(list, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
 
-        
-  
-   
-
-        // --- RENDER DOCTORS ---
-        function renderDoctorCards(list, containerId) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-
-            if (!list.length) {
-                container.innerHTML = `
+  if (!list.length) {
+    container.innerHTML = `
                     <div class="col-span-full rounded-[2rem] border border-dashed border-gray-300 bg-white/70 p-10 text-center text-gray-500">
                         <h3 class="text-xl font-semibold text-gray-700">No doctors found</h3>
                         <p class="mt-2">Try a different specialty or search term.</p>
                     </div>
                 `;
-                lucide.createIcons();
-                return;
-            }
+    lucide.createIcons();
+    return;
+  }
 
-            container.innerHTML = list.map(doc => `
+  container.innerHTML = list
+    .map(
+      (doc) => `
                 <div class="glass-card p-6 rounded-[2rem] group">
                     <div class="flex gap-4 mb-4">
                         <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
@@ -329,151 +393,159 @@ function deleteDocument(docId) {
                         <div class="flex items-center gap-2"><i data-lucide="star" class="w-3 h-3 text-yellow-400 fill-current"></i> ${doc.rating} Rating</div>
                         <div class="flex items-center gap-2"><i data-lucide="map-pin" class="w-3 h-3 text-indigo-400"></i> ${doc.workplace}</div>
                     </div>
-                    <button onclick="openDoctorProfile(${doc.id})" class="w-full py-3 bg-gray-50 text-indigo-600 rounded-xl font-bold group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                    <button onclick='openDoctorProfile(${JSON.stringify(doc.id)})'  class="w-full py-3 bg-gray-50 text-indigo-600 rounded-xl font-bold group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
                             View Profile
                         </button>
                 </div>
-            `).join('');
-            lucide.createIcons(); // Re-initialize icons for new content
-        }
-
-        // --- FILTERING LOGIC ---
-        function filterDoctors(category, query = activeSearchQuery) {
-            activeCategory = category;
-            activeSearchQuery = query;
-            const filtered = getFilteredDoctors();
-            renderDoctorCards(filtered, 'doctors-main-grid');
-            document.getElementById('result-count').innerText = `${filtered.length} results found`;
-
-            // Update button styles
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg', 'translate-x-2');
-                if (btn.innerText === category || (category === 'All' && btn.innerText === 'All Specialities')) {
-                    btn.classList.add('bg-indigo-600', 'text-white', 'shadow-lg', 'translate-x-2');
-                }
-            });
-        }
-
-        function searchDoctors(query) {
-            activeSearchQuery = query.trim();
-            filterDoctors(activeCategory, activeSearchQuery);
-        }
-
-        function searchFromHome() {
-            const searchInput = document.getElementById('home-search-input');
-            const query = searchInput ? searchInput.value : '';
-            activeSearchQuery = query.trim();
-            navigateTo('doctors');
-            filterDoctors(activeCategory, activeSearchQuery);
-
-            const doctorSearchInput = document.getElementById('doctor-search-input');
-            if (doctorSearchInput) {
-                doctorSearchInput.value = activeSearchQuery;
-            }
-        }
-
-        // --- INITIALIZATION ---
-        window.onload = () => {
-            lucide.createIcons();
-                updateNavbar();
-                populateProfileUI();
-            loadUploadedDocuments();
-            
-            // Home page doctors
-            renderDoctorCards(DOCTORS.slice(0, 4), 'famous-doctors-grid');
-            
-            // Doctors page initial load
-            filterDoctors('All', '');
-
-            // Setup categories sidebar
-            const catList = document.getElementById('category-list');
-            CATEGORIES.forEach(cat => {
-                const btn = document.createElement('button');
-                btn.className = "category-btn w-full text-left px-4 py-3 rounded-xl transition-all hover:bg-indigo-600 hover:text-white text-grey-700";
-                btn.innerText = cat;
-                btn.onclick = () => filterDoctors(cat, activeSearchQuery);
-                catList.appendChild(btn);
-            });
-
-            const homeSearchInput = document.getElementById('home-search-input');
-            if (homeSearchInput) {
-                homeSearchInput.addEventListener('keydown', (event) => {
-                    if (event.key === 'Enter') {
-                        event.preventDefault();
-                        searchFromHome();
-                    }
-                });
-            }
-
-            const doctorSearchInput = document.getElementById('doctor-search-input');
-            if (doctorSearchInput) {
-                doctorSearchInput.addEventListener('input', (event) => {
-                    searchDoctors(event.target.value);
-                });
-            }
-
-            // File upload handler
-            const pdfFileInput = document.getElementById('pdfFile');
-            if (pdfFileInput) {
-                pdfFileInput.addEventListener('change', (event) => {
-                    const files = event.target.files;
-                    if (files.length > 0) {
-                        const fileNames = Array.from(files).map(f => f.name).join(', ');
-                        document.getElementById('fileName').textContent = `Selected: ${fileNames}`;
-                        handleFileUpload(files);
-                    }
-                });
-            }
-
-            // Wire auth forms if present
-            const signupForm = document.getElementById('signup-form');
-            if (signupForm) {
-                signupForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    handleAuthAction('signup');
-                });
-            }
-
-            const loginForm = document.getElementById('login-form');
-            if (loginForm) {
-                loginForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    handleAuthAction('login');
-                });
-            }
-        };
-
-
-// Populate profile UI from stored user data
-function populateProfileUI(){
-    const stored = localStorage.getItem('medease_user');
-    if(!stored) return;
-    try{
-        const data = JSON.parse(stored);
-        myProfile = Object.assign({}, myProfile, data);
-        Object.keys(myProfile).forEach(key => {
-            const el = document.getElementById(`profile-${key}`);
-            if(el) el.textContent = myProfile[key];
-        });
-        // also update brief/alternate name and ID displays
-        const brief = document.getElementById('profile-name-brief');
-        if (brief) brief.textContent = myProfile.name || '';
-        const idEl = document.getElementById('profile-ID');
-        if (idEl) idEl.textContent = myProfile.ID || myProfile.id || '';
-    }catch(err){
-        console.error('Failed to populate profile UI', err);
-    }
+            `,
+    )
+    .join("");
+  lucide.createIcons(); // Re-initialize icons for new content
 }
 
-        function updateNavbar(){
+// --- FILTERING LOGIC ---
+function filterDoctors(category, query = activeSearchQuery) {
+  activeCategory = category;
+  activeSearchQuery = query;
+  const filtered = getFilteredDoctors();
+  renderDoctorCards(filtered, "doctors-main-grid");
+  document.getElementById("result-count").innerText =
+    `${filtered.length} results found`;
 
-const authSection=document.getElementById("auth-section");
+  // Update button styles
+  document.querySelectorAll(".category-btn").forEach((btn) => {
+    btn.classList.remove(
+      "bg-indigo-600",
+      "text-white",
+      "shadow-lg",
+      "translate-x-2",
+    );
+    if (
+      btn.innerText === category ||
+      (category === "All" && btn.innerText === "All Specialities")
+    ) {
+      btn.classList.add(
+        "bg-indigo-600",
+        "text-white",
+        "shadow-lg",
+        "translate-x-2",
+      );
+    }
+  });
+}
 
-if(localStorage.getItem("loggedIn")){
+function searchDoctors(query) {
+  activeSearchQuery = query.trim();
+  filterDoctors(activeCategory, activeSearchQuery);
+}
 
-const user=JSON.parse(localStorage.getItem("medease_user"));
+function searchFromHome() {
+  const searchInput = document.getElementById("home-search-input");
+  const query = searchInput ? searchInput.value : "";
+  activeSearchQuery = query.trim();
+  navigateTo("doctors");
+  filterDoctors(activeCategory, activeSearchQuery);
 
-authSection.innerHTML=`
+  const doctorSearchInput = document.getElementById("doctor-search-input");
+  if (doctorSearchInput) {
+    doctorSearchInput.value = activeSearchQuery;
+  }
+}
+
+// --- INITIALIZATION ---
+window.onload = () => {
+  lucide.createIcons();
+  updateNavbar();
+  populateProfileUI();
+  loadUploadedDocuments();
+  if (window.location.search.includes("profile=1")) {
+    navigateTo("profile");
+  }
+
+  // Home page doctors
+  renderDoctorCards(DOCTORS.slice(0, 4), "famous-doctors-grid");
+
+  // Doctors page initial load
+  filterDoctors("All", "");
+
+  // Setup categories sidebar
+  const catList = document.getElementById("category-list");
+  CATEGORIES.forEach((cat) => {
+    const btn = document.createElement("button");
+    btn.className =
+      "category-btn w-full text-left px-4 py-3 rounded-xl transition-all hover:bg-indigo-600 hover:text-white text-grey-700";
+    btn.innerText = cat;
+    btn.onclick = () => filterDoctors(cat, activeSearchQuery);
+    catList.appendChild(btn);
+  });
+
+  const homeSearchInput = document.getElementById("home-search-input");
+  if (homeSearchInput) {
+    homeSearchInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        searchFromHome();
+      }
+    });
+  }
+
+  const doctorSearchInput = document.getElementById("doctor-search-input");
+  if (doctorSearchInput) {
+    doctorSearchInput.addEventListener("input", (event) => {
+      searchDoctors(event.target.value);
+    });
+  }
+
+  // File upload handler
+  const pdfFileInput = document.getElementById("pdfFile");
+  if (pdfFileInput) {
+    pdfFileInput.addEventListener("change", (event) => {
+      const files = event.target.files;
+      if (files.length > 0) {
+        const fileNames = Array.from(files)
+          .map((f) => f.name)
+          .join(", ");
+        document.getElementById("fileName").textContent =
+          `Selected: ${fileNames}`;
+        handleFileUpload(files);
+      }
+    });
+  }
+
+  // Wire auth forms if present
+  const signupForm = document.querySelector("signup-form");
+
+  const loginForm = document.querySelector("login-form");
+};
+
+// Populate profile UI from stored user data
+function populateProfileUI() {
+  const stored = localStorage.getItem("medease_user");
+  if (!stored) return;
+  try {
+    const data = JSON.parse(stored);
+    myProfile = Object.assign({}, myProfile, data);
+    Object.keys(myProfile).forEach((key) => {
+      const el = document.getElementById(`profile-${key}`);
+      if (el) el.textContent = myProfile[key];
+    });
+    // also update brief/alternate name and ID displays
+    const brief = document.getElementById("profile-name-brief");
+    if (brief) brief.textContent = myProfile.name || "";
+    const idEl = document.getElementById("profile-ID");
+    if (idEl) idEl.textContent = myProfile.ID || myProfile.id || "";
+  } catch (err) {
+    console.error("Failed to populate profile UI", err);
+  }
+}
+
+function updateNavbar() {
+  const authSection = document.getElementById("auth-section");
+
+  if (localStorage.getItem("loggedIn")) {
+    const user = JSON.parse(localStorage.getItem("medease_user"));
+
+    authSection.innerHTML = `
 
 <span class="font-semibold text-gray-700">
 ${user.name}
@@ -485,30 +557,26 @@ Logout
 </button>
 
 `;
-
+  }
 }
 
-}
-
-function logout(){
-
-localStorage.removeItem("loggedIn");
-location.reload();
-
+function logout() {
+  localStorage.removeItem("loggedIn");
+  location.reload();
 }
 
 // Open doctor's profile page and populate details
-function openDoctorProfile(id){
-    const doc = DOCTORS.find(d => d.id === id);
-    if(!doc){
-        alert('Doctor not found');
-        return;
-    }
+function openDoctorProfile(id) {
+  const doc = DOCTORS.find((d) => d.id === id);
+  if (!doc) {
+    alert("Doctor not found");
+    return;
+  }
 
-    const container = document.getElementById('doctor-profile-container');
-    if(!container) return;
+  const container = document.getElementById("doctor-profile-container");
+  if (!container) return;
 
-    container.innerHTML = `
+  container.innerHTML = `
         <div class="bg-indigo-100 rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden">
             <div class="h-51 bg-gradient-to-r from-indigo-600 to-purple-700 relative">
                 <div class=" bottom-0 left-12 flex items-end gap-6" style="z-index:10;">
@@ -532,17 +600,60 @@ function openDoctorProfile(id){
                     <p><strong>Specialty:</strong> ${doc.type}</p>
                     <p><strong>E-mail:</strong> ${doc.email}</p>
                     <p><strong>Phone:</strong> ${doc.phone}</p>
+                    ${doc.registrationNo ? `<p><strong>Medical Registration No.:</strong> ${doc.registrationNo}</p>` : ""}
+                    ${doc.address ? `<p><strong>Address:</strong> ${doc.address}</p>` : ""}
+                    ${doc.gender ? `<p><strong>Gender:</strong> ${doc.gender}</p>` : ""}
                     <p><strong>About:</strong> Experienced ${doc.type} providing compassionate care and personalized treatment plans.</p>
                 </div>
-                <div class="mt-8 flex gap-4">
-                    <button onclick="navigateTo('doctors')" class="px-6 py-3 bg-gray-100 rounded-xl hover:bg-indigo-600 hover:text-white transition">Back to list</button>
-                    <button class="px-6 py-3 bg-indigo-600 text-white rounded-xl">Book Appointment</button>
+               
+
+<form action="book_appointment.php"  class ="flex flex-col items-center"method="POST">
+
+<input type="hidden" name="doctor" value="${doc.name}">
+<input type="hidden" name="speciality" value="${doc.type}">
+
+<input type="date"
+name="date"
+required
+class="w-[60%] border rounded-xl  p-3 mt-3">
+
+<input type="time"
+name="time"
+required
+class="w-[60%]  border rounded-xl p-3 mt-3">
+
+<textarea
+name="reason"
+placeholder="Reason for Appointment"
+required
+class=" w-[60%]  border rounded-xl p-3 mt-3"></textarea>
+
+<div class="flex gap-4 mt-4">
+
+<button
+type="button"
+onclick="navigateTo('doctors')"
+class="px-6 py-3 bg-gray-100 rounded-xl">
+Back to list
+</button>
+
+<button
+type="submit"
+class="px-6 py-3 bg-indigo-600 text-white rounded-xl">
+Book Appointment
+</button>
+
+</div>
+
+</form>
+
+</div>
                 </div>
             </div>
         </div>`;
 
-    if(window.lucide) lucide.createIcons();
-    navigateTo('doctor');
+  if (window.lucide) lucide.createIcons();
+  navigateTo("doctor");
 }
 
 // let myProfile ={
@@ -562,28 +673,25 @@ function openDoctorProfile(id){
 //     doctorWorkplace: "City Hospital",
 // }
 
-
-
-const uploadForm = document.getElementById('uploadForm');
+const uploadForm = document.getElementById("uploadForm");
 if (uploadForm) {
-    uploadForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const fileInput = document.getElementById('pdfFile');
-        if (!fileInput || fileInput.files.length === 0) {
-            return alert('Please select a PDF file first.');
-        }
-        const formData = new FormData();
-        formData.append('pdfFile', fileInput.files[0]);
-        try {
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: formData
-            });
-            alert(await response.text());
-        } catch (error) {
-            console.error(error);
-            alert('Upload failed.');
-        }
-    });
+  uploadForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fileInput = document.getElementById("pdfFile");
+    if (!fileInput || fileInput.files.length === 0) {
+      return alert("Please select a PDF file first.");
+    }
+    const formData = new FormData();
+    formData.append("pdfFile", fileInput.files[0]);
+    try {
+      const response = await fetch("/upload", {
+        method: "POST",
+        body: formData,
+      });
+      alert(await response.text());
+    } catch (error) {
+      console.error(error);
+      alert("Upload failed.");
+    }
+  });
 }
-

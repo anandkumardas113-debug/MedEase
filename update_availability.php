@@ -1,0 +1,1 @@
+<?php session_start();include 'config.php';if(!isset($_SESSION['doctor_id'])){header('Location:index.php');exit;}$id=(int)$_SESSION['doctor_id'];$availability=($_POST['availability']??'No')==='Yes'?'Yes':'No';$s=$conn->prepare('UPDATE doctors SET availability=? WHERE id=?');$s->bind_param('si',$availability,$id);$s->execute();header('Location:doctor_dashboard.php');exit;?>
